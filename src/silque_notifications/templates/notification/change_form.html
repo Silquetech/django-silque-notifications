@@ -1,0 +1,339 @@
+{% extends "admin/change_form.html" %}
+{% load static %}
+
+{# Minimal compatibility template. Prefer the admin/silque_notifications/... one.#}
+
+{% block extrahead %}
+    {{ block.super }}
+    <script>
+        (function() {
+            function post(url, data, success, fail) {
+                fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': (document.querySelector('[name=csrfmiddlewaretoken]')||{}).value
+                    },
+                    body: new URLSearchParams(data)
+                }).then(r => r.json()).then(success).catch(fail || function(){});
+            }
+
+            function updateFields() {
+                const sendOn = document.getElementById('id_send_alert_on');
+                const modelSel = document.getElementById('id_model');
+                if (!sendOn || !modelSel) return;
+
+                const sel = sendOn.value;
+                const modelVal = modelSel.value;
+                if (!modelVal) return;
+
+                const fieldsUrl = modelSel.getAttribute('data-fields-url') || '{% url "silque_notifications:get_model_fields" %}';
+                const dateFieldsUrl = modelSel.getAttribute('data-date-fields-url') || '{% url "silque_notifications:get_model_date_fields" %}';
+
+                if (sel === 'V') {
+                    post(fieldsUrl, { model: modelVal }, function(resp) {
+                        if (resp.status === 'S' && Array.isArray(resp.fields)) {
+                            const vf = document.getElementById('id_value_change_field');
+                            if (vf) {
+                                vf.innerHTML = '';
+                                resp.fields.forEach(function(f) {
+                                    const opt = document.createElement('option');
+                                    opt.value = f;
+                                    opt.textContent = f;
+                                    vf.appendChild(opt);
+                                });
+                            }
+                        }
+                    });
+                } else if (sel === 'B' || sel === 'A') {
+                    post(dateFieldsUrl, { model: modelVal }, function(resp) {
+                        if (resp.status === 'S' && Array.isArray(resp.fields)) {
+                            const df = document.getElementById('id_date_field');
+                            if (df) {
+                                df.innerHTML = '';
+                                resp.fields.forEach(function(f) {
+                                    const opt = document.createElement('option');
+                                    opt.value = f;
+                                    opt.textContent = f;
+                                    df.appendChild(opt);
+                                });
+                            }
+                        }
+                    });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+                const sendOn = document.getElementById('id_send_alert_on');
+                const modelSel = document.getElementById('id_model');
+                if (sendOn) sendOn.addEventListener('change', updateFields);
+                if (modelSel) modelSel.addEventListener('change', updateFields);
+            });
+        })();
+    </script>
+{% endblock %}
+                                            }
+                                        }
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: 'Invalid Trigger Event!',
+                                        text: "A valid option must be selected for the 'Send Alert On' field."
+                                    })
+                                }
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'No model selected!',
+                                    text: 'A model must be selected before saving a notification.'
+                                })
+                            }
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Title field empty!',
+                                text: 'You need to populate the title field before saving a notification.'
+                            })
+                        }
+                    } else {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Invalid Channel!',
+                            text: 'You have selected an invalid channel. Must be one of "Email", "SMS" or "Whatsapp".'
+                        })
+                    }
+
+                    if (Object.keys(valid_recipients).length > 0) {
+                        _this.is_loading = true
+                        $.ajax('{% url "silque_notifications:save_notification" %}', { 
+                            type: "POST",
+                            data: {
+                                "csrfmiddlewaretoken": _this.csrfmiddlewaretoken,
+                                "is_active": _this.is_active,
+                                "doc_id": _this.doc_id,
+                                "title": _this.title,
+                                "message": _this.message,
+                                "channel": _this.channel,
+                                "valid_recipients": JSON.stringify(valid_recipients),
+
+                                "model": _this.model,
+                                "send_alert_on": _this.send_alert_on,
+                                "value_change_field": _this.value_change_field,
+                                "date_field": _this.date_field,
+                                "alert_days": _this.alert_days,
+                                "conditions": _this.conditions,
+                            },
+                            success: function(response) {
+                                _this.is_loading = false
+                                if (response.status == "S") {
+                                    if (_this.channel == 'E') {
+                                        _this.email_recipients = response.valid_recipients;
+
+                                    } else {
+                                        _this.number_recipients = response.valid_recipients;
+                                    }
+
+                                    _this.doc_id = response.doc_id
+                                    _this.is_active = response.is_active
+
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Notification has been created/updated.'
+                                    })
+                                } else {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: response.error,
+                                        text: response.message
+                                    })
+                                }
+                            },
+                            error: function(err) {
+                                _this.is_loading = false
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'An unknown error has occured!',
+                                    text: 'Check console for debugging or contact support.'
+                                })
+
+                                console.log(err)
+                            }
+                        })
+                    }
+                },
+                removeRecipient(_type, recipient_id) {
+                    let _this = this;
+
+                    if (_type == 'E') {
+                        delete _this.email_recipients[recipient_id]
+                    } else {
+                        delete _this.number_recipients[recipient_id]
+                    }
+                },
+                updateFields() {
+                    let _this = this;
+
+                    if (_this.send_alert_on == 'V') {
+                        _this.is_loading = true
+
+                        $.ajax('{% url "silque_notifications:get_model_fields" %}', { 
+                            type: "POST",
+                            data: {
+                                "csrfmiddlewaretoken": _this.csrfmiddlewaretoken,
+                                "model": _this.model
+                            },
+                            success: function(response) {
+                                _this.is_loading = false
+                                if (response.status == "S") {
+                                    _this.available_fields = response.fields
+
+                                    _this.value_change_field = ""
+
+                                } else {
+                                    _this.available_fields = []
+
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: response.error,
+                                        text: response.message
+                                    })
+                                }
+                            },
+                            error: function(err) {
+                                _this.is_loading = false
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'An unknown error has occured!',
+                                    text: 'Check console for debugging or contact support.'
+                                })
+
+                                console.log(err)
+                            }
+                        })
+                    
+                    } else if(_this.send_alert_on == "B" || _this.send_alert_on == "A") {
+                        _this.is_loading = true
+
+                        $.ajax('{% url "silque_notifications:get_model_date_fields" %}', { 
+                            type: "POST",
+                            data: {
+                                "csrfmiddlewaretoken": _this.csrfmiddlewaretoken,
+                                "model": _this.model
+                            },
+                            success: function(response) {
+                                _this.is_loading = false
+                                if (response.status == "S") {
+                                    _this.available_date_fields = response.fields
+
+                                    _this.date_field = ""
+
+                                } else {
+                                    _this.available_date_fields = []
+
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: response.error,
+                                        text: response.message
+                                    })
+                                }
+                            },
+                            error: function(err) {
+                                _this.is_loading = false
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'An unknown error has occured!',
+                                    text: 'Check console for debugging or contact support.'
+                                })
+
+                                console.log(err)
+                            }
+                        })
+                    }
+                },
+                updateRelationalRecipients(for_email) {
+                    let _this = this;
+
+                    _this.is_loading = true
+
+                    $.ajax('{% url "silque_notifications:get_model_relational_recipients" %}', { 
+                        type: "POST",
+                        data: {
+                            "csrfmiddlewaretoken": _this.csrfmiddlewaretoken,
+                            "model": _this.model,
+                            "for_email": for_email
+                        },
+                        success: function(response) {
+                            _this.is_loading = false
+                            if (response.status == "S") {
+                                if (for_email) {
+                                    _this.relational_email_recipients = response.fields
+                                } else {
+                                    _this.relational_number_recipients = response.fields
+                                }
+
+                            } else {
+                                if (for_email) {
+                                    _this.relational_email_recipients = []
+                                } else {
+                                    _this.relational_number_recipients = []
+                                }
+
+                                if (!response.empty) {
+                                    Swal.fire({
+                                        icon: 'error',
+                                        title: response.error,
+                                        text: response.message
+                                    })
+                                }
+                            }
+                        },
+                        error: function(err) {
+                            _this.is_loading = false
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'An unknown error has occured!',
+                                text: 'Check console for debugging or contact support.'
+                            })
+
+                            console.log(err)
+                        }
+                    })
+                }
+            }
+        }
+
+        const form_app = Vue.createApp(form_manager);
+
+        form_app.directive('selectit', (el, binding, vnode) => {
+            $(el).select2({
+                placeholder: 'Select an option',
+                tags: binding.value
+            }).on('select2:select', function (e) {
+                $(el)[0].dispatchEvent(new Event('change'));
+            });
+        })
+
+        form_app.directive('conditions', (el) => {
+            var textareas = $(el).find('textarea')
+
+            if (textareas.length == 2) {
+                var countarea = $(textareas[0])
+                var inputarea = $(textareas[1])
+
+                new ResizeObserver(() => {
+                    countarea[0].style.height = inputarea[0].style.height;
+                }).observe(inputarea[0])
+
+                inputarea.on('input', function() {
+                    var line_count = inputarea.val().split("\n").length;
+                    countarea.val([...Array(line_count).keys()].map(i => i + 1).join('.\n'))
+
+                    inputarea[0].style.height = inputarea[0].scrollHeight + 'px';
+                })
+            }
+        })
+
+        form_app.mount("#{{ opts.model_name }}_form")
+    })
+</script>
+{% endblock %}

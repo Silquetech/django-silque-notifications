@@ -1,0 +1,51 @@
+/* Notification Admin Form Styling */
+
+.conditional-field {
+    transition: all 0.3s ease;
+}
+
+/* Hide conditional field containers by default */
+.form-row.field-value_change_field,
+.form-row.field-date_field,
+.form-row.field-alert_days {
+    display: none !important;
+}
+
+/* Show them when they have the 'show' class */
+.form-row.field-value_change_field.show,
+.form-row.field-date_field.show,
+.form-row.field-alert_days.show {
+    display: block !important;
+}
+
+/* Improve field grouping */
+.field-model,
+.field-send_alert_on {
+    margin-bottom: 20px;
+}
+
+.form-row.field-value_change_field,
+.form-row.field-date_field,
+.form-row.field-alert_days {
+    margin-left: 20px;
+    border-left: 3px solid #007cba;
+    padding-left: 15px;
+    background-color: #f8f9fa;
+}
+
+/* Style the relational recipient fields */
+.field-relational_email_selections,
+.field-relational_number_selections {
+    background-color: #e8f4f8;
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+/* Help text styling */
+.field-relational_email_selections .helptext,
+.field-relational_number_selections .helptext {
+    color: #666;
+    font-style: italic;
+    margin-top: 5px;
+}

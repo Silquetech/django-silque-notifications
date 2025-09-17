@@ -1,0 +1,5 @@
+recursive-include src/silque_notifications/static *
+recursive-include src/silque_notifications/templates *
+recursive-include src/silque_notifications/migrations *.py
+include LICENSE
+include README.md

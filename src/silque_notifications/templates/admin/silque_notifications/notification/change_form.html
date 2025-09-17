@@ -1,0 +1,465 @@
+{% extends "admin/change_form.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+/* Initially hide conditional fields */
+.field-value_change_field,
+.field-date_field,
+.field-alert_days,
+.field-email_recipients,
+.field-number_recipients,
+.field-relational_email_selections,
+.field-relational_number_selections {
+    display: none;
+}
+
+.field-value_change_field.show,
+.field-date_field.show,
+.field-alert_days.show,
+.field-email_recipients.show,
+.field-number_recipients.show,
+.field-relational_email_selections.show,
+.field-relational_number_selections.show {
+    display: block;
+}
+
+/* Visual styling for conditional fields - inherit Django admin colors */
+.field-value_change_field,
+.field-date_field,
+.field-alert_days,
+.field-email_recipients,
+.field-number_recipients {
+    margin-left: 20px;
+    border-left: 3px solid var(--primary-color, #007cba);
+    padding-left: 15px;
+    background-color: var(--body-bg, #f8f9fa);
+    border-radius: 5px;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+    color: var(--body-fg, inherit);
+}
+
+/* Style the relational recipient fields - inherit Django admin colors */
+.field-relational_email_selections,
+.field-relational_number_selections {
+    background-color: var(--darkened-bg, #e8f4f8);
+    padding: 15px;
+    border-radius: 5px;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+    color: var(--body-fg, inherit);
+}
+
+/* Dark mode overrides using Django admin's CSS variables */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --conditional-bg: var(--body-bg, #1e1e1e);
+        --conditional-border: var(--primary-color, #4299e1);
+        --relational-bg: var(--darkened-bg, #2a2a2a);
+    }
+}
+
+/* Manual dark theme detection and override */
+[data-theme="dark"] .field-value_change_field,
+[data-theme="dark"] .field-date_field,
+[data-theme="dark"] .field-alert_days,
+[data-theme="dark"] .field-email_recipients,
+[data-theme="dark"] .field-number_recipients,
+.theme-dark .field-value_change_field,
+.theme-dark .field-date_field,
+.theme-dark .field-alert_days,
+.theme-dark .field-email_recipients,
+.theme-dark .field-number_recipients {
+    background-color: var(--body-bg, #1e1e1e) !important;
+    border-left-color: var(--primary-color, #4299e1) !important;
+    color: var(--body-fg, #e2e8f0) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+[data-theme="dark"] .field-relational_email_selections,
+[data-theme="dark"] .field-relational_number_selections,
+.theme-dark .field-relational_email_selections,
+.theme-dark .field-relational_number_selections {
+    background-color: var(--darkened-bg, #2a2a2a) !important;
+    color: var(--body-fg, #e2e8f0) !important;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+}
+
+/* Ensure labels inherit Django admin colors */
+[data-theme="dark"] .field-value_change_field label,
+[data-theme="dark"] .field-date_field label,
+[data-theme="dark"] .field-alert_days label,
+[data-theme="dark"] .field-email_recipients label,
+[data-theme="dark"] .field-number_recipients label,
+[data-theme="dark"] .field-relational_email_selections label,
+[data-theme="dark"] .field-relational_number_selections label,
+.theme-dark .field-value_change_field label,
+.theme-dark .field-date_field label,
+.theme-dark .field-alert_days label,
+.theme-dark .field-email_recipients label,
+.theme-dark .field-number_recipients label,
+.theme-dark .field-relational_email_selections label,
+.theme-dark .field-relational_number_selections label {
+    color: var(--body-fg, #e2e8f0) !important;
+}
+
+/* Force form inputs to use Django admin styling */
+[data-theme="dark"] .field-value_change_field select,
+[data-theme="dark"] .field-date_field select,
+[data-theme="dark"] .field-alert_days input,
+[data-theme="dark"] .field-relational_email_selections select,
+[data-theme="dark"] .field-relational_number_selections select,
+.theme-dark .field-value_change_field select,
+.theme-dark .field-date_field select,
+.theme-dark .field-alert_days input,
+.theme-dark .field-relational_email_selections select,
+.theme-dark .field-relational_number_selections select {
+    background-color: var(--darkened-bg, #2a2a2a) !important;
+    color: var(--body-fg, #e2e8f0) !important;
+    border-color: var(--border-color, #444) !important;
+}
+
+/* Help text styling for dark mode */
+[data-theme="dark"] .helptext,
+.theme-dark .helptext {
+    color: var(--body-quiet-color, #999) !important;
+}
+</style>
+
+<script>
+function updateThemeColors() {
+    const html = document.documentElement;
+    const body = document.body;
+    
+    // Check various ways Django admin might indicate dark mode
+    const isDark = html.hasAttribute('data-theme') && html.getAttribute('data-theme') === 'dark' ||
+                   body.classList.contains('theme-dark') ||
+                   body.classList.contains('admin-dark-mode') ||
+                   body.classList.contains('dark') ||
+                   html.classList.contains('theme-dark') ||
+                   getComputedStyle(body).backgroundColor === 'rgb(30, 30, 30)' || // Check actual background color
+                   window.matchMedia('(prefers-color-scheme: dark)').matches;
+    
+  // Quiet diagnostics removed for performance
+    
+    // Force refresh of CSS custom properties based on current Django admin theme
+    const bodyStyles = getComputedStyle(body);
+    const primaryColor = bodyStyles.getPropertyValue('--primary-color') || (isDark ? '#4299e1' : '#007cba');
+    const bodyBg = bodyStyles.getPropertyValue('--body-bg') || bodyStyles.backgroundColor;
+    const bodyFg = bodyStyles.getPropertyValue('--body-fg') || bodyStyles.color;
+    
+  // Quiet diagnostics removed
+    
+    // Apply theme-specific styling directly
+    const conditionalFields = document.querySelectorAll('.field-value_change_field, .field-date_field, .field-alert_days');
+  const relationalFields = [];
+    
+    conditionalFields.forEach(field => {
+        if (isDark) {
+            field.style.setProperty('background-color', bodyBg, 'important');
+            field.style.setProperty('border-left-color', primaryColor, 'important');
+            field.style.setProperty('color', bodyFg, 'important');
+        } else {
+            field.style.removeProperty('background-color');
+            field.style.removeProperty('border-left-color');
+            field.style.removeProperty('color');
+        }
+    });
+    
+  // no-op
+}
+
+// Update colors immediately
+setTimeout(updateThemeColors, 100); // Small delay to ensure Django admin styles are loaded
+
+// Watch for theme changes
+const observer = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+        if (mutation.type === 'attributes' && 
+            (mutation.attributeName === 'data-theme' || 
+             mutation.attributeName === 'class')) {
+            setTimeout(updateThemeColors, 50);
+        }
+    });
+});
+
+// Observe changes to html and body elements
+observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['data-theme', 'class']
+});
+
+observer.observe(document.body, {
+    attributes: true,
+    attributeFilter: ['class', 'style']
+});
+
+// Also listen for media query changes
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+    setTimeout(updateThemeColors, 50);
+});
+
+// Interval fallback removed to reduce overhead
+</script>
+{% endblock %}
+
+{% block admin_change_form_document_ready %}
+{{ block.super }}
+<script>
+(function() {
+  function post(url, data, success, fail) {
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: new URLSearchParams(data)
+    }).then(r => r.json()).then(success).catch(fail || function(e){console.error('POST error:', e);});
+  }
+
+  function populateSelect(selectEl, values) {
+    if (!selectEl) return;
+    const current = Array.from(selectEl.selectedOptions).map(o => o.value);
+    selectEl.innerHTML = '';
+    // Add empty option first
+    var emptyOpt = document.createElement('option');
+    emptyOpt.value = '';
+    emptyOpt.textContent = '--- Select ---';
+    selectEl.appendChild(emptyOpt);
+    
+    values.forEach(function(v) {
+      var opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      if (current.includes(v)) opt.selected = true;
+      selectEl.appendChild(opt);
+    });
+  }
+
+  function showConditionalFields(sendOn) {
+    
+    
+    // Hide all conditional fields first
+    const conditionalFields = ['.field-value_change_field', '.field-date_field', '.field-alert_days'];
+    conditionalFields.forEach(selector => {
+      const field = document.querySelector(selector);
+      if (field) {
+        field.style.display = 'none';
+        field.classList.remove('show');
+      }
+    });
+
+    // Show relevant fields based on selection
+    if (sendOn === 'V') {
+      const valueField = document.querySelector('.field-value_change_field');
+      if (valueField) {
+        valueField.style.display = 'block';
+        valueField.classList.add('show');
+        
+        // Toggle required markers
+        const input = document.getElementById('id_value_change_field');
+        if (input) {
+          input.setAttribute('required', 'required');
+          input.setAttribute('aria-required', 'true');
+        }
+      }
+      // Ensure other conditional fields are not required
+      const df = document.getElementById('id_date_field');
+      const ad = document.getElementById('id_alert_days');
+      if (df) { df.removeAttribute('required'); df.removeAttribute('aria-required'); }
+      if (ad) { ad.removeAttribute('required'); ad.removeAttribute('aria-required'); }
+    } else if (sendOn === 'B' || sendOn === 'A') {
+      const dateField = document.querySelector('.field-date_field');
+      const alertField = document.querySelector('.field-alert_days');
+      
+      if (dateField) {
+        dateField.style.display = 'block';
+        dateField.classList.add('show');
+        
+        const input = document.getElementById('id_date_field');
+        if (input) {
+          input.setAttribute('required', 'required');
+          input.setAttribute('aria-required', 'true');
+        }
+      }
+      if (alertField) {
+        alertField.style.display = 'block';
+        alertField.classList.add('show');
+        
+        const input = document.getElementById('id_alert_days');
+        if (input) {
+          input.setAttribute('required', 'required');
+          input.setAttribute('aria-required', 'true');
+          input.setAttribute('min', '0');
+          input.setAttribute('step', '1');
+          input.setAttribute('inputmode', 'numeric');
+        }
+      }
+      // Ensure value_change_field is not required in this branch
+      const vcf = document.getElementById('id_value_change_field');
+      if (vcf) { vcf.removeAttribute('required'); vcf.removeAttribute('aria-required'); }
+    } else {
+      // No special trigger; clear required flags
+      const ids = ['id_value_change_field', 'id_date_field', 'id_alert_days'];
+      ids.forEach(id => { const el = document.getElementById(id); if (el) { el.removeAttribute('required'); el.removeAttribute('aria-required'); } });
+    }
+  }
+
+  function showChannelFields() {
+    
+    
+    var channelField = document.querySelector('#id_channel');
+    var emailRecipientsField = document.querySelector('.field-email_recipients');
+    var numberRecipientsField = document.querySelector('.field-number_recipients');
+  var relationalEmailField = null;
+  var relationalNumberField = null;
+    
+    if (!channelField) {
+      
+      return;
+    }
+    
+    var value = channelField.value;
+    
+    
+    // Show/hide recipient fields based on channel selection
+    if (value === 'E') {  // Email
+      
+      if (emailRecipientsField) {
+        emailRecipientsField.style.setProperty('display', 'block', 'important');
+        emailRecipientsField.classList.add('show');
+      }
+  // relational suggestions moved to recipient admin
+      if (numberRecipientsField) {
+        numberRecipientsField.style.setProperty('display', 'none', 'important');
+        numberRecipientsField.classList.remove('show');
+      }
+  // relational suggestions moved to recipient admin
+      // Toggle required/aria-required on channel recipient inputs
+      const emailSelect = document.getElementById('id_email_recipients_from');
+      const emailDual = document.getElementById('id_email_recipients');
+      if (emailDual) {
+        emailDual.setAttribute('aria-required', 'true');
+      }
+      // Numbers not required
+      const numDual = document.getElementById('id_number_recipients');
+      if (numDual) { numDual.removeAttribute('aria-required'); }
+    } else if (value === 'S' || value === 'W') {  // SMS or WhatsApp
+      
+      if (emailRecipientsField) {
+        emailRecipientsField.style.setProperty('display', 'none', 'important');
+        emailRecipientsField.classList.remove('show');
+      }
+  // relational suggestions moved to recipient admin
+      if (numberRecipientsField) {
+        numberRecipientsField.style.setProperty('display', 'block', 'important');
+        numberRecipientsField.classList.add('show');
+      }
+  // relational suggestions moved to recipient admin
+  // Numbers required for S/W
+  const numDual = document.getElementById('id_number_recipients');
+  if (numDual) { numDual.setAttribute('aria-required', 'true'); }
+  // Emails not required
+  const emailDual = document.getElementById('id_email_recipients');
+  if (emailDual) { emailDual.removeAttribute('aria-required'); }
+    } else {
+      
+      // For other channels or no selection, hide all recipient fields
+      if (emailRecipientsField) {
+        emailRecipientsField.style.setProperty('display', 'none', 'important');
+        emailRecipientsField.classList.remove('show');
+      }
+      if (relationalEmailField) {
+        relationalEmailField.style.setProperty('display', 'none', 'important');
+        relationalEmailField.classList.remove('show');
+      }
+      if (numberRecipientsField) {
+        numberRecipientsField.style.setProperty('display', 'none', 'important');
+        numberRecipientsField.classList.remove('show');
+      }
+  // relational suggestions moved to recipient admin
+  // Clear required flags when no channel
+  const emailDual = document.getElementById('id_email_recipients');
+  const numDual = document.getElementById('id_number_recipients');
+  if (emailDual) { emailDual.removeAttribute('aria-required'); }
+  if (numDual) { numDual.removeAttribute('aria-required'); }
+    }
+  }
+
+  function updateFields() {
+    var sendOn = document.getElementById('id_send_alert_on');
+    var modelSel = document.getElementById('id_model');
+    if (!sendOn || !modelSel) {
+      
+      return;
+    }
+
+    var sel = sendOn.value;
+    var modelVal = modelSel.value;
+    
+    
+    
+    // Show/hide conditional fields based on send_alert_on selection
+    showConditionalFields(sel);
+    
+    if (!modelVal) return;
+
+  var fieldsUrl = (modelSel && modelSel.getAttribute('data-fields-url')) || '/get_model_fields/';
+  var dateFieldsUrl = (modelSel && modelSel.getAttribute('data-date-fields-url')) || '/get_model_date_fields/';
+
+    if (sel === 'V') {
+      
+      post(fieldsUrl, { model: modelVal }, function(resp) {
+        
+        if (resp.status === 'S' && Array.isArray(resp.fields)) {
+          populateSelect(document.getElementById('id_value_change_field'), resp.fields);
+        }
+      });
+    } else if (sel === 'B' || sel === 'A') {
+      
+      post(dateFieldsUrl, { model: modelVal }, function(resp) {
+        
+        if (resp.status === 'S' && Array.isArray(resp.fields)) {
+          populateSelect(document.getElementById('id_date_field'), resp.fields);
+        }
+      });
+    }
+  }
+
+  // relational suggestions moved to recipient admin
+
+  // Initialize when DOM is ready
+  var sendOn = document.getElementById('id_send_alert_on');
+  var modelSel = document.getElementById('id_model');
+  var channelSel = document.getElementById('id_channel');
+  
+  if (sendOn) {
+    sendOn.addEventListener('change', updateFields);
+    // Initialize field visibility on load
+    showConditionalFields(sendOn.value);
+  }
+  
+  if (modelSel) {
+    modelSel.addEventListener('change', function() {
+      updateFields();
+  // relational suggestions moved to recipient admin
+    });
+  }
+
+  if (channelSel) {
+    channelSel.addEventListener('change', showChannelFields);
+    // Initialize channel field visibility on load
+    showChannelFields();
+  }
+
+  
+  
+  // Prefill on load when editing existing notifications
+  updateFields();
+  // relational suggestions moved to recipient admin
+  showChannelFields(); // Initialize channel fields on load
+})();
+</script>
+{% endblock %}
