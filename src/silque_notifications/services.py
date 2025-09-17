@@ -1,13 +1,14 @@
-import requests
-import traceback
-import time
-import logging
-from django.apps import apps
 import ast
-from django.core.mail import send_mail
+import logging
 import re
-from silque_notifications.helpers import validate_email
+import time
+
+import requests
+from django.apps import apps
 from django.conf import settings
+from django.core.mail import send_mail
+
+from silque_notifications.helpers import validate_email
 
 # Try to import ErrorLog from silque_core if app is installed
 try:

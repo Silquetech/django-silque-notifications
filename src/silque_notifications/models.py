@@ -1,9 +1,7 @@
-from django.db import models, transaction, router
-from django.db import IntegrityError
-
-from django.utils.translation import gettext_lazy as _
+from django.db import models
 from django.utils import timezone
-from silque_notifications.services import NotificationService
+from django.utils.translation import gettext_lazy as _
+
 # from silque.models import Notification, ErrorLog
 
 # Detect Celery availability without importing the module directly

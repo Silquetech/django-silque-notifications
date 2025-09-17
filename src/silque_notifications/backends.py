@@ -1,9 +1,8 @@
-from django.core.mail.backends.smtp import EmailBackend
-from silque.models import ErrorLog, EmailLog
-from django.contrib import messages
-import requests
 import traceback
-import time
+
+from django.core.mail.backends.smtp import EmailBackend
+from silque.models import EmailLog, ErrorLog
+
 
 class SilqueEmailBackend(EmailBackend):
     def __init__(self, host=None, port=None, username=None, password=None,

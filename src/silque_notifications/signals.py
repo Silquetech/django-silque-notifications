@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-from typing import Optional
-from django.db.models.signals import pre_save, post_save, post_delete, m2m_changed
-from django.db import transaction
-from django.dispatch import receiver
 from django.apps import apps
+from django.db import transaction
+from django.db.models.signals import post_delete, post_save, pre_save
+from django.dispatch import receiver
 
 from .models import Notification
-from .services import NotificationService
 
 # Detect Celery availability without importing it eagerly each time
 try:
@@ -65,7 +63,7 @@ def _gather_valid_notifications(instance, created: bool):
     return valids
 
 
-def _enqueue_notifications(old_obj_data: Optional[dict], new_obj_data: Optional[dict], notification_ids: list[int]):
+def _enqueue_notifications(old_obj_data: dict | None, new_obj_data: dict | None, notification_ids: list[int]):
     if not _celery_available or not notification_ids:
         return
     try:

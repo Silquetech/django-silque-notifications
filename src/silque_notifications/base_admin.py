@@ -1,5 +1,5 @@
-from django.contrib import admin
 from silque.contrib.simple_history.admin import SimpleHistoryAdmin
+
 
 class SilqueModelAdmin(SimpleHistoryAdmin):
     class Meta:

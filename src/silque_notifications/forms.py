@@ -1,8 +1,8 @@
 from django import forms
 from django.urls import reverse
 
-from .models import Notification, EmailRecipient, NumberRecipient
 from .helpers import get_notification_models_with_app_label
+from .models import EmailRecipient, Notification, NumberRecipient
 
 
 class NotificationAdminForm(forms.ModelForm):

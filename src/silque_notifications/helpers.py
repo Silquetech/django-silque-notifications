@@ -1,12 +1,13 @@
-from django.apps import apps
+import random
+import string
+import uuid
 from re import fullmatch as re_fullmatch
+
+from django.apps import apps
 from django.conf import settings
 from django.db import models
-import uuid
-import random
-from django.utils import timezone
-import string
 from django.db.models import Max
+from django.utils import timezone
 
 try:
     from django.urls import reverse
@@ -53,9 +54,7 @@ def generate_n_digit_uuid(n=8):
 
 def get_configuration_admin_url():
     meta = EmailConfiguration._meta
-    return reverse('admin:{}_{}_change'.format(
-        meta.app_label, meta.model_name
-    ))
+    return reverse(f'admin:{meta.app_label}_{meta.model_name}_change')
 
 def get_notification_models():
     return [model for model in apps.get_models() if type.mro(model)[1].__name__ == 'NotificationModel']

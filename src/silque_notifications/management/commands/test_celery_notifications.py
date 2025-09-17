@@ -2,6 +2,7 @@
 Management command to test Celery notification tasks.
 """
 from django.core.management.base import BaseCommand
+
 from silque_notifications.tasks import send_email_task, send_sms_task
 
 

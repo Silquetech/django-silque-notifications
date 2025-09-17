@@ -63,7 +63,7 @@ where = ["src"]
 "*" = ["*.py[cod]", "__pycache__", "*.pytest_cache*"]
 
 [tool.ruff]
-line-length = 100
+line-length = 130
 select = ["E", "F", "I", "UP", "B"]
 
 [tool.pytest.ini_options]

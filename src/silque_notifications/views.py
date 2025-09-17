@@ -5,20 +5,16 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
-from django.http import (HttpResponseNotFound, HttpResponseRedirect,
-                         JsonResponse)
+from django.http import HttpResponseNotFound, HttpResponseRedirect, JsonResponse
 from django.template import loader
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_http_methods
 
-from .helpers import \
-    get_model_date_fields as get_model_date_fields_helper
+from .helpers import get_model_date_fields as get_model_date_fields_helper
 from .helpers import get_model_fields as get_model_fields_helper
-from .helpers import \
-    get_model_relational_recipients as \
-    get_model_relational_recipients_helper
+from .helpers import get_model_relational_recipients as get_model_relational_recipients_helper
 from .helpers import get_notification_models_with_app_label
-from .models import (EmailRecipient, Notification, NumberRecipient)
+from .models import EmailRecipient, Notification, NumberRecipient
 
 # Optional integrations with external 'silque' project. Provide safe fallbacks
 # so this app remains shippable and works independently.

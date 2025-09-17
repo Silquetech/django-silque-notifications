@@ -1,10 +1,9 @@
 """
 Celery tasks for the notification system.
 """
-from celery import shared_task
-from django.conf import settings
-import traceback
 import logging
+
+from celery import shared_task
 
 logger = logging.getLogger('silque_notifications')
 
@@ -20,9 +19,10 @@ def send_notification_task(self, old_obj_data, new_obj_data, valid_notifications
         valid_notifications_data: List of notification data
     """
     try:
-        from .services import NotificationService
-        from .models import Notification
         from django.apps import apps
+
+        from .models import Notification
+        from .services import NotificationService
         
         # Reconstruct objects from serialized data
         if old_obj_data:

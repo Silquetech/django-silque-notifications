@@ -1,11 +1,13 @@
 from django.contrib import admin, messages
 from django.utils.translation import ngettext
-from .models import EmailRecipient, NumberRecipient, Notification
+
 from .forms import (
-    NotificationAdminForm,
     EmailRecipientAdminForm,
+    NotificationAdminForm,
     NumberRecipientAdminForm,
 )
+from .models import EmailRecipient, Notification, NumberRecipient
+
 
 @admin.register(EmailRecipient)
 class EmailRecipientAdmin(admin.ModelAdmin):

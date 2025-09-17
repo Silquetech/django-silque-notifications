@@ -1,8 +1,8 @@
-from django.test import TestCase
 from django.core.exceptions import ValidationError
+from django.test import TestCase
 
-from .models import Notification, EmailRecipient, NumberRecipient
 from .forms import NotificationAdminForm
+from .models import EmailRecipient, Notification, NumberRecipient
 from .services import NotificationService
 
 
