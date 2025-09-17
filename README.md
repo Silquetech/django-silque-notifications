@@ -1,5 +1,9 @@
 # django-silque-notifications
 
+[![CI](https://github.com/Silquetech/django-silque-notifications/actions/workflows/ci.yml/badge.svg)](https://github.com/Silquetech/django-silque-notifications/actions/workflows/ci.yml)
+[![PyPI version](https://badge.fury.io/py/django-silque-notifications.svg)](https://badge.fury.io/py/django-silque-notifications)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
 Flexible, admin-driven notifications for Django with Celery/Redis, relational recipient resolution, and safe templating.
 
 - Admin-first UX: define notifications in Django admin
