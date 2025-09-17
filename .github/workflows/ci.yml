@@ -4,7 +4,11 @@ on:
   push:
     branches: [ main ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, dev_fahad ]  # Also allow PRs to dev branch
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read  # Explicitly set minimal permissions
 
 jobs:
   tests:

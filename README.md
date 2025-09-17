@@ -338,6 +338,27 @@ Current development status of notification channels and features:
 
 The email notification system is battle-tested and can handle enterprise workloads. SMS and WhatsApp channels are architecturally complete but need provider-specific implementations.
 
+## Contributing
+
+Contributions are welcome! Please read our [Contributing Guide](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+### Development Setup
+
+```bash
+# Fork and clone the repository
+git clone https://github.com/YOUR_USERNAME/django-silque-notifications.git
+cd django-silque-notifications
+
+# Install in development mode
+pip install -e .[dev]
+
+# Run tests
+pytest
+
+# Check code style
+ruff check .
+```
+
 ## License
 
 AGPL-3.0-or-later. By using or modifying this project (including over a network), you agree to share source under the same license and preserve notices.
