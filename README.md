@@ -127,7 +127,9 @@ Settings quick-reference:
 Per-model hints (on your models):
 
 ```python
-class Customer(models.Model):
+from silque_notification.models import NotificationModel
+
+class Customer(NotificationModel):
         NOTIFICATION_EMAIL_FIELDS = ["primary_email", "billing_email"]
         NOTIFICATION_NUMBER_FIELDS = ["mobile", "office_phone"]
 ```
