@@ -50,6 +50,21 @@ S_NOTIFICATION_RELATIONAL_NUMBER_RECIPIENTS = {
 }
 ```
 
+Note on names:
+- Install name (pip): django-silque-notifications
+- Import/app name (Python/Django): silque_notifications
+
+Python imports can’t contain hyphens, so use underscores when importing or adding to INSTALLED_APPS:
+
+```python
+import silque_notifications
+
+INSTALLED_APPS = [
+    # ...
+    "silque_notifications",
+]
+```
+
 3) Wire Celery (standard Django pattern)
 
 Create `celery.py` in your Django project and load it in `__init__.py`. See `src/silque_notifications/CELERY_MIGRATION.md` for a reference.
@@ -112,4 +127,4 @@ S_NOTIFICATION_RELATIONAL_NUMBER_RECIPIENTS = {
 
 ## License
 
-MIT
+AGPL-3.0-or-later. By using or modifying this project (including over a network), you agree to share source under the same license and preserve notices.
